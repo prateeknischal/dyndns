@@ -114,12 +114,16 @@ func privateIps() (interfaceMap, error) {
 
 func main() {
 	d, _ := newDuckDns()
-	ticker := time.NewTicker(time.Duration(5 * time.Minute))
+	ticker := time.NewTicker(time.Duration(30 * time.Minute))
 	var imap interfaceMap
 	var err error
 	last := interfaceMap{"", "", ""}
 
 	for {
+		// update public IP
+		log.Printf("Executing public DNS update")
+		d.updateDNSEntry(context.TODO(), "", "peeche.duckdns.org")
+
 		if imap, err = privateIps(); err != nil {
 			log.Printf("Failed to get private IPs: %s", err)
 			continue
@@ -139,10 +143,6 @@ func main() {
 		if addr == "" {
 			addr = imap.wireless
 		}
-
-		// update public IP
-		log.Printf("Executing public DNS update")
-		d.updateDNSEntry(context.TODO(), "", "peeche.duckdns.org")
 
 		// update the local IP
 		if addr != "" {
