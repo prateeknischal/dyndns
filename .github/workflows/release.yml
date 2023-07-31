@@ -1,7 +1,8 @@
 name: Release DynDNS binaries
 
 on:
-  push:
+  release:
+    types: [created, published]
 
 jobs:
   releases-matrix:
