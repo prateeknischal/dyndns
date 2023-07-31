@@ -1,10 +1,9 @@
 project_name: dyndns
 builds:
-  -
+  - id: main
+    binary: dyndns
+    main: .
     goos:
       - linux
     goarch:
       - amd64
-    ldflags:
-      - >
-        -s -w

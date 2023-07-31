@@ -1,34 +1,29 @@
-name: Release DynDNS binaries
+name: goreleaser
 
 on:
   push:
-    branches:
-      - master
     tags:
-      - "*"
+      - '*'
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    name: Build the extension
+  goreleaser:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout the code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 0
-
-      - name: Set up Go 1.18
-        uses: actions/setup-go@v2
+          fetch-depth: 1
+      - run: git fetch --force --tags
+      - uses: actions/setup-go@v4
         with:
-          go-version: 1.18
-        id: go
-
-      - name: Run goreleaser
-        uses: goreleaser/goreleaser-action@v2
-        if: startsWith(github.ref, 'refs/tags/')
+          go-version: stable
+      - uses: goreleaser/goreleaser-action@v4
         with:
+          distribution: goreleaser
           version: latest
-          args: release --rm-dist
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
