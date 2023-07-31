@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strings"
@@ -39,6 +40,11 @@ func (d *duckDns) updateDNSEntry(ctx context.Context, ip, domain string) error {
 	}
 	log.Printf("Calling %s", url)
 	return nil
+}
+
+func getIpFromAddr(addr net.Addr) string {
+	ip, _, _ := net.ParseCIDR(addr.String())
+	return ip.String()
 }
 
 func (d *duckDns) _updateDNSEntry(ctx context.Context, ip, domain string) error {
@@ -79,22 +85,37 @@ func privateIps() (interfaceMap, error) {
 	}
 
 	for _, device := range devices {
-		deviceType, _ := device.GetPropertyDeviceType()
-		interfaceName, _ := device.GetPropertyIpInterface()
-		ipv4Config, _ := device.GetPropertyIP4Config()
-		deviceAddrs, _ := ipv4Config.GetPropertyAddresses()
+		deviceType, err := device.GetPropertyDeviceType()
+		if err != nil {
+			continue
+		}
+
+		interfaceName, err := device.GetPropertyIpInterface()
+		if err != nil {
+			continue
+		}
+
+		iface, err := net.InterfaceByName(interfaceName)
+		if err != nil || iface == nil {
+			continue
+		}
+
+		deviceAddrs, err := iface.Addrs()
+		if err != nil || len(deviceAddrs) == 0 {
+			continue
+		}
 
 		if deviceType == gonetworkmanager.NmDeviceTypeEthernet {
-			imap.wired = deviceAddrs[0].Address
+			imap.wired = getIpFromAddr(deviceAddrs[0])
 		}
 
 		if deviceType == gonetworkmanager.NmDeviceTypeWifi {
-			imap.wireless = deviceAddrs[0].Address
+			imap.wireless = getIpFromAddr(deviceAddrs[0])
 
 		}
 
 		if deviceType == gonetworkmanager.NmDeviceTypeTun && strings.HasPrefix(interfaceName, "tailscale") {
-			imap.tailscale = deviceAddrs[0].Address
+			imap.tailscale = getIpFromAddr(deviceAddrs[0])
 		}
 	}
 
