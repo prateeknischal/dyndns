@@ -32,22 +32,12 @@ func newDuckDns() (*duckDns, error) {
 	}, nil
 }
 
-func (d *duckDns) updateDNSEntry(ctx context.Context, ip, domain string) error {
-	url := fmt.Sprintf("https://duckdns.org/update/%s/%s", domain, d.apiToken)
-
-	if ip != "" {
-		url = url + "/" + ip
-	}
-	log.Printf("Calling %s", url)
-	return nil
-}
-
 func getIpFromAddr(addr net.Addr) string {
 	ip, _, _ := net.ParseCIDR(addr.String())
 	return ip.String()
 }
 
-func (d *duckDns) _updateDNSEntry(ctx context.Context, ip, domain string) error {
+func (d *duckDns) updateDNSEntry(ctx context.Context, ip, domain string) error {
 	url := fmt.Sprintf("https://duckdns.org/update/%s/%s", domain, d.apiToken)
 
 	if ip != "" {
