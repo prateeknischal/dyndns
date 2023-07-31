@@ -71,24 +71,19 @@ func privateIps() (interfaceMap, error) {
 	for _, device := range devices {
 		deviceType, _ := device.GetPropertyDeviceType()
 		interfaceName, _ := device.GetPropertyIpInterface()
+		ipv4Config, _ := device.GetPropertyIP4Config()
+		deviceAddrs, _ := ipv4Config.GetPropertyAddresses()
 
 		if deviceType == gonetworkmanager.NmDeviceTypeEthernet {
-			ipv4Config, _ := device.GetPropertyIP4Config()
-			deviceAddrs, _ := ipv4Config.GetPropertyAddresses()
 			imap.wired = deviceAddrs[0].Address
-
 		}
 
 		if deviceType == gonetworkmanager.NmDeviceTypeWifi {
-			ipv4Config, _ := device.GetPropertyIP4Config()
-			deviceAddrs, _ := ipv4Config.GetPropertyAddresses()
 			imap.wireless = deviceAddrs[0].Address
 
 		}
 
 		if deviceType == gonetworkmanager.NmDeviceTypeTun && strings.HasPrefix(interfaceName, "tailscale") {
-			ipv4Config, _ := device.GetPropertyIP4Config()
-			deviceAddrs, _ := ipv4Config.GetPropertyAddresses()
 			imap.tailscale = deviceAddrs[0].Address
 		}
 	}
