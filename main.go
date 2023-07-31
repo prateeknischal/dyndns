@@ -37,6 +37,16 @@ func (d *duckDns) updateDNSEntry(ctx context.Context, ip, domain string) error {
 	if ip != "" {
 		url = url + "/" + ip
 	}
+	log.Printf("Calling %s", url)
+	return nil
+}
+
+func (d *duckDns) _updateDNSEntry(ctx context.Context, ip, domain string) error {
+	url := fmt.Sprintf("https://duckdns.org/update/%s/%s", domain, d.apiToken)
+
+	if ip != "" {
+		url = url + "/" + ip
+	}
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	res, err := d.client.Do(req)
@@ -100,6 +110,7 @@ func main() {
 
 	for {
 		if imap, err = privateIps(); err != nil {
+			log.Printf("Failed to get private IPs: %s", err)
 			continue
 		}
 
