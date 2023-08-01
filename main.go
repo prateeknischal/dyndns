@@ -120,41 +120,43 @@ func main() {
 	last := interfaceMap{"", "", ""}
 
 	for {
-		// update public IP
-		log.Printf("Executing public DNS update")
-		d.updateDNSEntry(context.TODO(), "", "peeche.duckdns.org")
+		func() {
+			// update public IP
+			log.Printf("Executing public DNS update")
+			d.updateDNSEntry(context.TODO(), "", "peeche.duckdns.org")
 
-		if imap, err = privateIps(); err != nil {
-			log.Printf("Failed to get private IPs: %s", err)
-			continue
-		}
+			if imap, err = privateIps(); err != nil {
+				log.Printf("Failed to get private IPs: %s", err)
+				return
+			}
 
-		if imap.wired == last.wired && imap.wireless == last.wireless && imap.tailscale == last.tailscale {
-			log.Printf("IP addresses did not change, skipping execution")
-			continue
-		}
+			if imap.wired == last.wired && imap.wireless == last.wireless && imap.tailscale == last.tailscale {
+				log.Printf("IP addresses did not change, skipping execution")
+				return
+			}
 
-		// update the last IPs
-		last.wired = imap.wired
-		last.wireless = imap.wireless
-		last.tailscale = imap.tailscale
+			// update the last IPs
+			last.wired = imap.wired
+			last.wireless = imap.wireless
+			last.tailscale = imap.tailscale
 
-		addr := imap.wired
-		if addr == "" {
-			addr = imap.wireless
-		}
+			addr := imap.wired
+			if addr == "" {
+				addr = imap.wireless
+			}
 
-		// update the local IP
-		if addr != "" {
-			log.Printf("Executing private DNS update with %s", addr)
-			d.updateDNSEntry(context.TODO(), addr, "dekh.duckdns.org")
-		}
+			// update the local IP
+			if addr != "" {
+				log.Printf("Executing private DNS update with %s", addr)
+				d.updateDNSEntry(context.TODO(), addr, "dekh.duckdns.org")
+			}
 
-		// update tailscale IP if the interface is up
-		if imap.tailscale != "" {
-			log.Printf("Executing tailscale DNS update with %s", imap.tailscale)
-			d.updateDNSEntry(context.TODO(), imap.tailscale, "maut.duckdns.org")
-		}
+			// update tailscale IP if the interface is up
+			if imap.tailscale != "" {
+				log.Printf("Executing tailscale DNS update with %s", imap.tailscale)
+				d.updateDNSEntry(context.TODO(), imap.tailscale, "maut.duckdns.org")
+			}
+		}()
 
 		<-ticker.C
 	}
